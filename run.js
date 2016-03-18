@@ -4,9 +4,7 @@
 // ** Program Options
 const DEFAULT_OPTIONS = {
     loglevel: 'info',
-    newline: true,
-    print_undefined: false,
-    print_null: false
+    newline: true
 };
 
 // ** Dependencies
@@ -60,6 +58,11 @@ function print(result) {
     //console.log(util.inspect(result));
 }
 
+/**
+ * Create a function that can be called using named arguments
+ * @param func
+ * @returns {function(): Promise}
+ */
 function $command(func) {
     const info = functions.getFunctionInfo(func);
 
@@ -163,8 +166,6 @@ if (util.isFunction(program)) {
 
     // ** Extract the name of the command
     const command_name = parameters.shift();
-
-    // ** Now get the argument list
 
     // ** Run a function/command
     if (!command_name)
