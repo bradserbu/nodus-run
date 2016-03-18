@@ -2,6 +2,7 @@
   "name": "nodus-run",
   "version": "0.1.0",
   "description": "",
+  "bin": "run.js",
   "repository": {
     "type": "git",
     "url": "https://gotham.bradserbu.com:10443/bradserbu/nodus-run"

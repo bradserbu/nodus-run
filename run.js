@@ -16,6 +16,7 @@ const util = require('util');
 const yargs = require('yargs');
 
 // ** Platform
+const functions = require('nodus').functions;
 const errors = require('nodus').errors;
 const logger = require('nodus').logger;
 const files = require('nodus').files;
@@ -59,16 +60,55 @@ function print(result) {
     //console.log(util.inspect(result));
 }
 
-function $run(func) {
-    const result = func();
+function $command(func) {
+    const info = functions.getFunctionInfo(func);
+
+    // ** Function will call callback directly
+    return (args, options) => new Promise((resolve, reject) => {
+
+        // ** Map named arguments to an argument array
+        const arg_array = functions.mapNamedArgs(args, info.paramList);
+
+        // ** Add the callback to the argument list and invoke the function
+        if (info.hasCallback) {
+            logger.warn('FUNC: Has a callback...');
+            arg_array.push((err, result) => {
+                if (err) reject(err);
+                else resolve(result);
+            });
+        }
+
+        // ** Determine the context of the command
+        const context = {
+            __args: args,
+            __options: options
+        };
+
+        // ** Call the function with the 'this' argument injected with args/options
+        const result = func.apply(context, arg_array);
+        resolve(result);
+    });
+}
+
+/**
+ * Run a command.
+ * @param func
+ * @returns {*}
+ */
+function $run(func, args, options) {
+
+    // ** Argument defaults
+    args = args || {};
+    options = options || {};
+
+    // ** Build a command
+    const command = $command(func);
+
+    // ** Run the command
+    const result = command(args, options);
 
     // ** Wait for the promise to complete before exiting
-    if (isPromise(result)) {
-        // ** Wait for the result, then print it
-        return result;
-    } else {
-        return Promise.resolve(result);
-    }
+    return isPromise(result) ? result : Promise.resolve(result);
 }
 
 // ** Parse the commandline arguments.
@@ -82,28 +122,65 @@ if (argv.hasOwnProperty('print_null')) options.print_null = argv.print_null;
 
 // ** Load the program arguments.
 const parameters = _.clone(argv._);
-const program = parameters.shift();
-const command = parameters.shift();
 
 // ** Build object from name=value pairs
-const args = {};
-_.each(parameters, arg => {
-    // ** Get the name of the argument
-    const name = arg.split('=')[0];
+const parse_arguments = () => {
+    const args = {};
+    _.forEach(parameters, arg => {
+        // ** Get the name of the argument
+        const name = arg.split('=')[0];
 
-    // ** Get the value to set it to
-    let value;
-    const index_of_equal_sign = arg.indexOf('=');
-    if (index_of_equal_sign !== -1)
-        value = arg.substring(index_of_equal_sign + 1);
+        // ** Get the value to set it to
+        let value;
+        const index_of_equal_sign = arg.indexOf('=');
+        if (index_of_equal_sign !== -1)
+            value = arg.substring(index_of_equal_sign + 1);
 
-    args[name] = value;
-});
+        args[name] = value;
+    });
+
+    return args;
+};
 
 // ** Load the application
-const app = files.requireFile(program);
+const program_name = parameters.shift();
 
-// ** Run the exported function
-if (app.hasOwnProperty(command) === false) throw errors('COMMAND_NOT_FOUND', {command: command}, `The command ${command} could not be found in the programs exports.`);
+// ** Load the program
+if (!program_name) throw errors('ARGUMENT_REQUIRED', 'program', '"program" is a required argument.');
 
+const program = files.requireFile(program_name);
 
+// ** Run the application
+if (util.isFunction(program)) {
+    // ** Parse the remaining entries on the command line
+    const args = parse_arguments();
+
+    // ** If the app itself is a function, then let's run that directly
+    $run(program, args)
+        .catch(print_error)
+        .then(print);
+} else {
+
+    // ** Extract the name of the command
+    const command_name = parameters.shift();
+
+    // ** Now get the argument list
+
+    // ** Run a function/command
+    if (!command_name)
+        throw errors('ARGUMENT_REQUIRED', 'command', '"command" is a required argument.');
+
+    // ** Load the command
+    const command = program[command_name];
+    if (!command)
+        throw errors('COMMAND_NOT_FOUND', {command: command},
+            `The command "${command}" could not be found in the programs exports.`);
+
+    // ** Parse the remaining entries on the command line
+    const args = parse_arguments();
+
+    // ** Run the command
+    $run(command, args)
+        .catch(print_error)
+        .then(print);
+}
