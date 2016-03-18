@@ -10,4 +10,4 @@ module.exports = function (name) {
         name = name.toUpperCase();
 
     return sayhello(name);
-};
+}

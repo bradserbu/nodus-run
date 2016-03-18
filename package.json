@@ -9,7 +9,7 @@
   },
   "scripts": {},
   "dependencies": {
-    "nodus": "0.0.16",
+    "nodus-framework": "^0.1.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {}

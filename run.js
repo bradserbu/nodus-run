@@ -14,10 +14,10 @@ const util = require('util');
 const yargs = require('yargs');
 
 // ** Platform
-const functions = require('nodus').functions;
-const errors = require('nodus').errors;
-const logger = require('nodus').logger;
-const files = require('nodus').files;
+const functions = require('nodus-framework').functions;
+const errors = require('nodus-framework').errors;
+const logger = require('nodus-framework').logging.createLogger();
+const files = require('nodus-framework').files;
 
 /**
  * Print the JSON representation of a value considering the optional newline value
@@ -120,8 +120,6 @@ const argv = yargs.argv;
 // ** Load the program options.
 const options = extend(true, {}, DEFAULT_OPTIONS, argv);
 if (argv.hasOwnProperty('newline')) options.newline = argv.newline;
-if (argv.hasOwnProperty('print_undefined')) options.print_undefined = argv.newline;
-if (argv.hasOwnProperty('print_null')) options.print_null = argv.print_null;
 
 // ** Load the program arguments.
 const parameters = _.clone(argv._);
