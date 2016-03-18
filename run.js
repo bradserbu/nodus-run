@@ -81,7 +81,7 @@ function $command(func) {
         // ** Determine the context of the command
         const context = {
             __args: args,
-            __options: options
+            __options: options,
         };
 
         // ** Call the function with the 'this' argument injected with args/options
@@ -156,7 +156,7 @@ if (util.isFunction(program)) {
     const args = parse_arguments();
 
     // ** If the app itself is a function, then let's run that directly
-    $run(program, args)
+    $run(program, args, options)
         .catch(print_error)
         .then(print);
 } else {
@@ -180,7 +180,7 @@ if (util.isFunction(program)) {
     const args = parse_arguments();
 
     // ** Run the command
-    $run(command, args)
+    $run(command, args, options)
         .catch(print_error)
         .then(print);
 }
