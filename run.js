@@ -125,7 +125,7 @@ if (argv.hasOwnProperty('newline')) options.newline = argv.newline;
 const parameters = _.clone(argv._);
 
 // ** Build object from name=value pairs
-const parse_arguments = () => {
+const extract_arguments = () => {
     const args = {};
     _.forEach(parameters, arg => {
         // ** Get the name of the argument
@@ -154,7 +154,7 @@ const program = files.requireFile(program_name);
 // ** Run the application
 if (util.isFunction(program)) {
     // ** Parse the remaining entries on the command line
-    const args = parse_arguments();
+    const args = extract_arguments();
 
     // ** If the app itself is a function, then let's run that directly
     $run(program, args, options)
@@ -176,7 +176,7 @@ if (util.isFunction(program)) {
             `The command "${command}" could not be found in the programs exports.`);
 
     // ** Parse the remaining entries on the command line
-    const args = parse_arguments();
+    const args = extract_arguments();
 
     // ** Run the command
     $run(command, args, options)

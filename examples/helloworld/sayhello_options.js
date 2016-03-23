@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const errors = require('nodus').errors;
 const sayhello = require('./sayhello');
 
 module.exports = function (name) {
