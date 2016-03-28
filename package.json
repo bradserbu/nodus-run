@@ -1,11 +1,11 @@
 {
   "name": "nodus-run",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Run a nodejs file from the command line.",
   "bin": "run.js",
   "repository": {
     "type": "git",
-    "url": "https://gotham.bradserbu.com:10443/bradserbu/nodus-run"
+    "url": "https://github.com/bradserbu/nodus-run"
   },
   "scripts": {},
   "dependencies": {
