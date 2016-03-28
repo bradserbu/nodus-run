@@ -9,8 +9,10 @@
   },
   "scripts": {},
   "dependencies": {
+    "extend": "^3.0.0",
     "nodus-framework": "^0.1.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "yargs": "^4.3.2"
   },
   "devDependencies": {}
 }
