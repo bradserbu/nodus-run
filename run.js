@@ -9,6 +9,7 @@ const DEFAULT_OPTIONS = {
 
 // ** Dependencies
 const _ = require('underscore');
+const $ = require('highland');
 const extend = require('extend');
 const util = require('util');
 const yargs = require('yargs');
@@ -39,6 +40,15 @@ function isPromise(value) {
 }
 
 /**
+ * Returns if a value is a readable stream
+ * @param value
+ * @returns {*}
+ */
+function isStream(value) {
+    return util.isFunction(value.pipe);
+}
+
+/**
  * Print an error to the output stream.
  * @param err
  */
@@ -53,9 +63,16 @@ function print_error(err) {
  * @param result
  */
 function print(result) {
-    // ** Print the value and exit
-    console.log(stringify(result));
-    //console.log(util.inspect(result));
+    if (isStream(result)) {
+        // ** Print all the results in the stream as an array
+        $(result).toArray((err, result) => {
+            if (err) print_error(err);
+            else print(result);
+        });
+    } else {
+        // ** Print the value and exit
+        console.log(stringify(result));
+    }
 }
 
 /**
@@ -151,8 +168,20 @@ if (!program_name) throw errors('ARGUMENT_REQUIRED', 'program', '"program" is a 
 
 const program = files.requireFile(program_name);
 
-// ** Run the application
-if (util.isFunction(program)) {
+// ** Extract the name of the command
+const command_name = parameters.shift();
+
+// ** Load the command
+const command = program[command_name];
+if (command) {
+    // ** Parse the remaining entries on the command line
+    const args = extract_arguments();
+
+    // ** Run the command
+    $run(command, args, options)
+        .catch(print_error)
+        .then(print);
+} else if (util.isFunction(program)) {
     // ** Parse the remaining entries on the command line
     const args = extract_arguments();
 
@@ -161,25 +190,6 @@ if (util.isFunction(program)) {
         .catch(print_error)
         .then(print);
 } else {
-
-    // ** Extract the name of the command
-    const command_name = parameters.shift();
-
-    // ** Run a function/command
-    if (!command_name)
-        throw errors('ARGUMENT_REQUIRED', 'command', '"command" is a required argument.');
-
-    // ** Load the command
-    const command = program[command_name];
-    if (!command)
-        throw errors('COMMAND_NOT_FOUND', {command: command},
-            `The command "${command}" could not be found in the programs exports.`);
-
-    // ** Parse the remaining entries on the command line
-    const args = extract_arguments();
-
-    // ** Run the command
-    $run(command, args, options)
-        .catch(print_error)
-        .then(print);
+    throw errors('COMMAND_NOT_FOUND', {command: command},
+        `The command "${command}" could not be found in the programs exports.`);
 }

@@ -10,6 +10,7 @@
   "scripts": {},
   "dependencies": {
     "extend": "^3.0.0",
+    "highland": "^2.7.2",
     "nodus-framework": "^0.1.1",
     "underscore": "^1.8.3",
     "yargs": "^4.3.2"
