@@ -167,29 +167,30 @@ const program_name = parameters.shift();
 if (!program_name) throw errors('ARGUMENT_REQUIRED', 'program', '"program" is a required argument.');
 
 const program = files.requireFile(program_name);
+if (util.isFunction(program)) {
+    // ** Parse the remaining entries on the command line
+    const args = extract_arguments();
+
+    // ** If the app itself is a function, then let's run that directly
+    return $run(program, args, options)
+        .catch(print_error)
+        .then(print);
+}
 
 // ** Extract the name of the command
 const command_name = parameters.shift();
 
 // ** Load the command
 const command = program[command_name];
-if (command) {
-    // ** Parse the remaining entries on the command line
-    const args = extract_arguments();
 
-    // ** Run the command
-    $run(command, args, options)
-        .catch(print_error)
-        .then(print);
-} else if (util.isFunction(program)) {
-    // ** Parse the remaining entries on the command line
-    const args = extract_arguments();
-
-    // ** If the app itself is a function, then let's run that directly
-    $run(program, args, options)
-        .catch(print_error)
-        .then(print);
-} else {
+if (!command)
     throw errors('COMMAND_NOT_FOUND', {command: command},
         `The command "${command}" could not be found in the programs exports.`);
-}
+
+// ** Parse the remaining entries on the command line
+const args = extract_arguments();
+
+// ** Run the command
+$run(command, args, options)
+    .catch(print_error)
+    .then(print);
