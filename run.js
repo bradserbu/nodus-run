@@ -65,10 +65,10 @@ function print_error(err) {
 function print(result) {
     if (isStream(result)) {
         // ** Print all the results in the stream as an array
-        $(result).toArray((err, result) => {
-            if (err) print_error(err);
-            else print(result);
-        });
+        $(result)
+            .toArray(result => print(result))
+            .stopOnError()
+            .error(err => print_error(err));
     } else {
         // ** Print the value and exit
         console.log(stringify(result));
