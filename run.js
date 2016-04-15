@@ -66,9 +66,8 @@ function print(result) {
     if (isStream(result)) {
         // ** Print all the results in the stream as an array
         $(result)
-            .toArray(result => print(result))
-            .stopOnError()
-            .error(err => print_error(err));
+            // .errors(err => print_error(err))
+            .toArray(result => print(result));
     } else {
         // ** Print the value and exit
         console.log(stringify(result));
@@ -87,7 +86,7 @@ function $command(func) {
     return (args, options) => new Promise((resolve, reject) => {
 
         // ** Map named arguments to an argument array
-        const arg_array = functions.mapNamedArgs(args, info.paramList);
+        const arg_array = _.isArray(args) ? args : functions.mapNamedArgs(args, info.paramList);
 
         // ** Add the callback to the argument list and invoke the function
         if (info.hasCallback) {
@@ -131,6 +130,29 @@ function $run(func, args, options) {
     return isPromise(result) ? result : Promise.resolve(result);
 }
 
+/**
+ * Run a program and then exit
+ * @param program
+ * @param options
+ * @returns {Promise.<TResult>}
+ */
+function run_and_done(program, options) {
+    // ** Parse the remaining entries on the command line
+    const args = extract_arguments();
+
+    // ** Check if we should stream input from stdin
+    if (options.stdin) {
+        // ** Pass each line of the input as input to the command
+        return $(process.stdin)
+            .map(line => console.log('LINE:', line));
+    } else {
+        // ** If the app itself is a function, then let's run that directly
+        return $run(program, args, options)
+            .catch(print_error)
+            .then(print);
+    }
+}
+
 // ** Parse the commandline arguments.
 const argv = yargs.argv;
 
@@ -168,13 +190,7 @@ if (!program_name) throw errors('ARGUMENT_REQUIRED', 'program', '"program" is a 
 
 const program = files.requireFile(program_name);
 if (util.isFunction(program)) {
-    // ** Parse the remaining entries on the command line
-    const args = extract_arguments();
-
-    // ** If the app itself is a function, then let's run that directly
-    return $run(program, args, options)
-        .catch(print_error)
-        .then(print);
+    return run_and_done(program, options);
 }
 
 // ** Extract the name of the command
@@ -187,10 +203,5 @@ if (!command)
     throw errors('COMMAND_NOT_FOUND', {command: command},
         `The command "${command}" could not be found in the programs exports.`);
 
-// ** Parse the remaining entries on the command line
-const args = extract_arguments();
-
 // ** Run the command
-$run(command, args, options)
-    .catch(print_error)
-    .then(print);
+return run_and_done(command, options);
