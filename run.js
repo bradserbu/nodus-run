@@ -10,9 +10,11 @@ const DEFAULT_OPTIONS = {
 // ** Dependencies
 const _ = require('underscore');
 const $ = require('highland');
+const Q = require('Q');
 const extend = require('extend');
 const util = require('util');
 const yargs = require('yargs');
+const ora = require('ora');
 
 // ** Platform
 const functions = require('nodus-framework').functions;
@@ -66,7 +68,7 @@ function print(result) {
     if (isStream(result)) {
         // ** Print all the results in the stream as an array
         $(result)
-            // .errors(err => print_error(err))
+        // .errors(err => print_error(err))
             .toArray(result => print(result));
     } else {
         // ** Print the value and exit
@@ -114,7 +116,7 @@ function $command(func) {
  * @param func
  * @returns {*}
  */
-function $run(func, args, options) {
+function run(func, args, options) {
 
     // ** Argument defaults
     args = args || {};
@@ -136,21 +138,37 @@ function $run(func, args, options) {
  * @param options
  * @returns {Promise.<TResult>}
  */
-function run_and_done(program, options) {
+function execute(program, options) {
     // ** Parse the remaining entries on the command line
     const args = extract_arguments();
 
     // ** Check if we should stream input from stdin
-    if (options.stdin) {
-        // ** Pass each line of the input as input to the command
-        return $(process.stdin)
-            .map(line => console.log('LINE:', line));
-    } else {
-        // ** If the app itself is a function, then let's run that directly
-        return $run(program, args, options)
-            .catch(print_error)
-            .then(print);
+    // if (options.stdin) {
+    //     // ** Pass each line of the input as input to the command
+    //     return $(process.stdin)
+    //         .map(line => console.log('LINE:', line));
+    // } else {
+    // ** If the app itself is a function, then let's run that directly
+
+    let process = run(program, args, options);
+
+    // ** Add spinner to the process
+    if (require('tty').isatty(1)) {
+        const spinner = ora('Running...');
+        spinner.start();
+
+        process = process.then(results => {
+            spinner.stop();
+            return results;
+        });
     }
+
+
+    return Q
+        .when(process)
+        .catch(print_error)
+        .then(print);
+    // }
 }
 
 // ** Parse the commandline arguments.
@@ -190,7 +208,7 @@ if (!program_name) throw errors('ARGUMENT_REQUIRED', 'program', '"program" is a 
 
 const program = files.requireFile(program_name);
 if (util.isFunction(program)) {
-    return run_and_done(program, options);
+    return execute(program, options);
 }
 
 // ** Extract the name of the command
@@ -198,10 +216,9 @@ const command_name = parameters.shift();
 
 // ** Load the command
 const command = program[command_name];
-
 if (!command)
     throw errors('COMMAND_NOT_FOUND', {command: command},
         `The command "${command}" could not be found in the programs exports.`);
 
 // ** Run the command
-return run_and_done(command, options);
+return execute(command, options);
