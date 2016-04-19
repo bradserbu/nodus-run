@@ -15,6 +15,7 @@ const extend = require('extend');
 const util = require('util');
 const yargs = require('yargs');
 const ora = require('ora');
+const tty = require('tty');
 
 // ** Platform
 const functions = require('nodus-framework').functions;
@@ -153,14 +154,11 @@ function execute(program, options) {
     let process = run(program, args, options);
 
     // ** Add spinner to the process
-    if (require('tty').isatty(1)) {
+    if (tty.isatty(1)) {
         const spinner = ora('Running...');
         spinner.start();
 
-        process = process.then(results => {
-            spinner.stop();
-            return results;
-        });
+        process = Q.when(process).finally(spinner.stop.bind(spinner));
     }
 
 
