@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --harmony_destructuring
 'use strict';
 
 // ** Program Options
@@ -16,6 +16,7 @@ const util = require('util');
 const yargs = require('yargs');
 const ora = require('ora');
 const tty = require('tty');
+const PrettyError = require('pretty-error');
 
 // ** Platform
 const functions = require('nodus-framework').functions;
@@ -57,7 +58,7 @@ function isStream(value) {
  */
 function print_error(err) {
     // ** Print the error and exit
-    console.error(err);
+    console.error(new PrettyError().render(err));
 }
 
 /**
