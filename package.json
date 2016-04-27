@@ -1,6 +1,6 @@
 {
   "name": "nodus-run",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Run a nodejs file from the command line.",
   "bin": "run.js",
   "repository": {
