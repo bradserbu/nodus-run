@@ -1,19 +1,42 @@
 {
-  "name": "nodus-run",
-  "version": "0.2.5",
-  "description": "Run a nodejs file from the command line.",
-  "bin": "run.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bradserbu/nodus-run"
+  "bin": {
+    "nodus-run": "run.js"
   },
-  "scripts": {},
+  "bugs": {
+    "url": "https://github.com/bradserbu/nodus-run/issues"
+  },
   "dependencies": {
     "extend": "^3.0.0",
     "highland": "^2.7.2",
-    "nodus-framework": "^0.1.1",
+    "nodus-framework": "^0.2.0",
+    "ora": "^0.2.1",
+    "pretty-error": "^2.0.0",
+    "q": "^1.4.1",
     "underscore": "^1.8.3",
     "yargs": "^4.3.2"
   },
-  "devDependencies": {}
+  "description": "Run a nodejs file from the command line.",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "119ba23c362323468954f1e5e47457492d465747",
+    "tarball": "http://k8s-proxy.qa1.us-east-1.local:30101/nodus-run/-/nodus-run-0.2.7.tgz"
+  },
+  "gitHead": "6bd9a4988c250caeee123a0edd669998214c1c64",
+  "homepage": "https://github.com/bradserbu/nodus-run#readme",
+  "maintainers": [
+    {
+      "email": "bradserbu@bradserbu.com",
+      "name": "bradserbu"
+    }
+  ],
+  "name": "nodus-run",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bradserbu/nodus-run.git"
+  },
+  "scripts": {},
+  "version": "0.2.7"
 }
