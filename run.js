@@ -3,7 +3,7 @@
 
 // ** Program Options
 const DEFAULT_OPTIONS = {
-    loglevel: 'info',
+    loglevel: 'INFO',
     newline: true
 };
 
@@ -134,6 +134,12 @@ const argv = yargs.argv;
 // ** Load the program options.
 const options = extend(true, {}, DEFAULT_OPTIONS, argv);
 if (argv.hasOwnProperty('newline')) options.newline = argv.newline;
+
+// ** Set the Default Log Level
+if (argv.hasOwnProperty('logLevel')) {
+    logger.setLevel(argv.logLevel);
+    logger.debug('Updated default log level:', {level: argv.logLevel});
+}
 
 // ** Load the program arguments.
 const parameters = _.clone(argv._);
