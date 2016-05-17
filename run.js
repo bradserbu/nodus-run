@@ -3,13 +3,14 @@
 
 // ** Program Options
 const DEFAULT_OPTIONS = {
-    loglevel: 'info',
+    loglevel: 'INFO',
     newline: true
 };
 
 // ** Dependencies
 const _ = require('underscore');
 const $ = require('highland');
+const Q = require('q');
 const extend = require('extend');
 const util = require('util');
 const yargs = require('yargs');
@@ -17,8 +18,10 @@ const yargs = require('yargs');
 // ** Platform
 const functions = require('nodus-framework').functions;
 const errors = require('nodus-framework').errors;
-const logger = require('nodus-framework').logging.createLogger();
+const logger = require('nodus-framework').logger;
 const files = require('nodus-framework').files;
+const jobs = require('nodus-framework').jobs;
+const Program = require('nodus-framework').program;
 
 /**
  * Print the JSON representation of a value considering the optional newline value
@@ -63,16 +66,9 @@ function print_error(err) {
  * @param result
  */
 function print(result) {
-    if (isStream(result)) {
-        // ** Print all the results in the stream as an array
-        $(result)
-            .toArray(result => print(result))
-            .stopOnError()
-            .error(err => print_error(err));
-    } else {
-        // ** Print the value and exit
-        console.log(stringify(result));
-    }
+    return jobs
+        .results(result)
+        .then(result => console.log(stringify(result)));
 }
 
 /**
@@ -128,7 +124,8 @@ function $run(func, args, options) {
     const result = command(args, options);
 
     // ** Wait for the promise to complete before exiting
-    return isPromise(result) ? result : Promise.resolve(result);
+    // return isPromise(result) ? result : Promise.resolve(result);
+    return Q.when(result);
 }
 
 // ** Parse the commandline arguments.
@@ -137,6 +134,12 @@ const argv = yargs.argv;
 // ** Load the program options.
 const options = extend(true, {}, DEFAULT_OPTIONS, argv);
 if (argv.hasOwnProperty('newline')) options.newline = argv.newline;
+
+// ** Set the Default Log Level
+if (argv.hasOwnProperty('logLevel')) {
+    logger.setLevel(argv.logLevel);
+    logger.debug('Updated default log level:', {level: argv.logLevel});
+}
 
 // ** Load the program arguments.
 const parameters = _.clone(argv._);
@@ -174,7 +177,8 @@ if (util.isFunction(program)) {
     // ** If the app itself is a function, then let's run that directly
     return $run(program, args, options)
         .catch(print_error)
-        .then(print);
+        .then(print)
+        .finally(() => Program.shutdown());
 }
 
 // ** Extract the name of the command
