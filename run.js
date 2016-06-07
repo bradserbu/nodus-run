@@ -89,6 +89,7 @@ function print(result) {
                     }
                 })
                 .map(value => process.stdout.write(value))
+                .stopOnError(err => logger.error(errors('STREAM_ERROR', null, err)))
                 .done(() => {
                     if (!isFirst)
                         process.stdout.write(']');
