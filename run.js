@@ -70,20 +70,31 @@ function print(result) {
     //     .results(result)
     //     .then(result => console.log(stringify(result)));
 
-    console.log('PRINT:', stringify(result));
-
     if (isPromise(result)) {
-        console.log('PROMISE!');
         return result.then(print);
     }
 
     if (isStream(result)) {
-        console.log('STREAM!');
+
+        let isFirst = true;
+
         return Q.Promise((resolve, reject) => {
             $(result)
-                .map(result => JSON.stringify(result))
-                .pipe(process.stdout, {end: false})
-                .done(resolve);
+                .map(result => {
+                    if (isFirst) {
+                        isFirst = false;
+                        return '[\n' + stringify(result) + '\n';
+                    } else {
+                        return stringify(result) + ',' + '\n';
+                    }
+                })
+                .map(value => process.stdout.write(value))
+                .done(() => {
+                    if (!isFirst)
+                        process.stdout.write(']');
+
+                    resolve();
+                });
         });
     }
 
