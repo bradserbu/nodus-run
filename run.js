@@ -81,7 +81,7 @@ function print(result) {
                         isFirst = false;
                         return '[\n' + stringify(result) + '\n';
                     } else {
-                        return ',' stringify(result) + '\n';
+                        return ',' + stringify(result) + '\n';
                     }
                 })
                 .map(value => process.stdout.write(value))
