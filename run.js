@@ -66,12 +66,7 @@ function print_error(err) {
  * @param result
  */
 function print(result) {
-    // return jobs
-    //     .results(result)
-    //     .then(result => console.log(stringify(result)));
-
     if (isPromise(result)) {
-        console.log('PROMISE!');
         return result.then(result => print(result));
     }
 
@@ -86,7 +81,7 @@ function print(result) {
                         isFirst = false;
                         return '[\n' + stringify(result) + '\n';
                     } else {
-                        return stringify(result) + ',' + '\n';
+                        return ',' stringify(result) + '\n';
                     }
                 })
                 .map(value => process.stdout.write(value))
