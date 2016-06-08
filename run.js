@@ -66,9 +66,41 @@ function print_error(err) {
  * @param result
  */
 function print(result) {
-    return jobs
-        .results(result)
-        .then(result => console.log(stringify(result)));
+    // return jobs
+    //     .results(result)
+    //     .then(result => console.log(stringify(result)));
+
+    if (isPromise(result)) {
+        console.log('PROMISE!');
+        return result.then(result => print(result));
+    }
+
+    if (isStream(result)) {
+
+        let isFirst = true;
+
+        return Q.Promise((resolve, reject) => {
+            $(result)
+                .map(result => {
+                    if (isFirst) {
+                        isFirst = false;
+                        return '[\n' + stringify(result) + '\n';
+                    } else {
+                        return stringify(result) + ',' + '\n';
+                    }
+                })
+                .map(value => process.stdout.write(value))
+                .stopOnError(err => logger.error(errors('STREAM_ERROR', null, err)))
+                .done(() => {
+                    if (!isFirst)
+                        process.stdout.write(']');
+
+                    resolve();
+                });
+        });
+    }
+
+    return Q.resolve(process.stdout.write(stringify(result)));
 }
 
 /**
@@ -147,6 +179,8 @@ const parameters = _.clone(argv._);
 // ** Build object from name=value pairs
 const extract_arguments = () => {
     const args = {};
+
+    logger.debug('PARAMETERS:', parameters);
     _.forEach(parameters, arg => {
         // ** Get the name of the argument
         const name = arg.split('=')[0];
