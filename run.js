@@ -71,7 +71,8 @@ function print(result) {
     //     .then(result => console.log(stringify(result)));
 
     if (isPromise(result)) {
-        return result.then(print);
+        console.log('PROMISE!');
+        return result.then(result => print(result));
     }
 
     if (isStream(result)) {
@@ -99,7 +100,7 @@ function print(result) {
         });
     }
 
-    return Q.when(() => console.log(JSON.stringify(result)));
+    return Q.resolve(process.stdout.write(stringify(result)));
 }
 
 /**
