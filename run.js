@@ -84,16 +84,16 @@ function print(result) {
                 .map(result => {
                     if (isFirst) {
                         isFirst = false;
-                        return '[\n' + stringify(result) + '\n';
+                        return '[\n' + stringify(result);
                     } else {
-                        return stringify(result) + ',' + '\n';
+                        return ',' + '\n' + stringify(result);
                     }
                 })
                 .map(value => process.stdout.write(value))
-                .stopOnError(err => logger.error(errors('STREAM_ERROR', null, err)))
+                .errors(err => logger.error(errors('STREAM_ERROR', null, err)))
                 .done(() => {
                     if (!isFirst)
-                        process.stdout.write(']');
+                        process.stdout.write('\n]');
 
                     resolve();
                 });
